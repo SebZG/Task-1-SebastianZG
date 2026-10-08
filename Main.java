@@ -32,19 +32,35 @@ public class Main {
         int limit = 0;
         do {
             System.out.print("How many attempts per round (1-10): ");
+
+            // Read full line first → catches empty Enter
+            String inputLine = scanner.nextLine().trim();
+
+            // CHECK 1: Empty input ONLY — user pressed Enter with nothing else
+            if (inputLine.isEmpty()) {
+                System.out.println("❌ Please enter a valid whole number.\n");
+                continue;
+            }
+
+            // Use a SECOND Scanner on the line → InputMismatchException works
+            Scanner lineScanner = new Scanner(inputLine);
+
+            // CHECK 2: Everything else — enters try/catch
             try {
-                limit = scanner.nextInt();
-                scanner.nextLine(); // Clear the buffer
+                limit = lineScanner.nextInt();
 
                 if (limit < 1 || limit > 10) {
                     System.out.println(
                         "⚠ Invalid number of attempts. Choose between 1-10.\n"
                     );
+                    limit = 0;
                 }
             } catch (InputMismatchException e) {
+                // InputMismatchException - for non-empty, non-numeric input
                 System.out.println("❌ Please enter a valid whole number.\n");
-                scanner.nextLine(); // Clear bad input
-                limit = 0; // Force loop to repeat
+                limit = 0;
+            } finally {
+                lineScanner.close(); // Clean up
             }
         } while (limit < 1 || limit > 10);
 
@@ -91,24 +107,35 @@ public class Main {
         while (attempts < maxAttempts && !guessedCorrectly) {
             System.out.print("Enter a number (1-100): ");
 
+            // Read full line first → catches empty Enter
+            String inputLine = scanner.nextLine().trim();
+
+            // CHECK 1: Empty input → no exception needed, just prompt again
+            if (inputLine.isEmpty()) {
+                System.out.println("❌ Please enter a valid number.\n");
+                continue; // No attempt lost
+            }
+
+            // Use a SECOND Scanner on the line → InputMismatchException works
+            Scanner lineScanner = new Scanner(inputLine);
+
             try {
-                int userGuess = scanner.nextInt();
-                scanner.nextLine(); // Clear the buffer
+                int userGuess = lineScanner.nextInt();
 
                 if (userGuess < 1 || userGuess > 100) {
                     System.out.println(
                         "Please enter a number between 1 and 100.\n"
                     );
-                    continue;
+                    continue; // No attempt lost
                 }
 
-                attempts++; // Increment attempts after a valid guess
+                attempts++; // Only valid numbers count
 
                 if (userGuess == targetNumber) {
                     guessedCorrectly = true;
-                    int points = maxAttempts - attempts + 1; // Fewer tries == more points
+                    int points = maxAttempts - attempts + 1;
                     System.out.printf(
-                        "✅ Correct! You got in %d attempt(s)!\n",
+                        "✅ Correct! You got it in %d attempt(s)!\n",
                         attempts
                     );
                     System.out.printf(
@@ -116,17 +143,19 @@ public class Main {
                         points,
                         runningTotal + points
                     );
-                    return points; // Return points earned this round
+                    return points;
                 } else if (userGuess > targetNumber) {
                     System.out.println("⬇ Too high! Try lower.\n");
-                } else if (userGuess < targetNumber) {
+                } else {
                     System.out.println("⬆ Too low! Try higher\n");
                 }
             } catch (InputMismatchException e) {
+                // InputMismatchException - for non-empty, non-numeric input
                 System.out.println(
                     "❌ Invalid Input! Please enter a valid number.\n"
                 );
-                scanner.nextLine(); // Clear the buffer
+            } finally {
+                lineScanner.close();
             }
         }
 
